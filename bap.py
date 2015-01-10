@@ -22,23 +22,29 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     formatter = logging.Formatter('[%(asctime)s] %(message)s')
     bapdir = os.path.dirname(__file__)
 
+    # pot.log
     potlogger = logging.getLogger('pot')
-    hdlr = logging.handlers.WatchedFileHandler(os.path.join(bapdir, 'pot.log'),
-                                               'a', encoding=None, delay=False)
+    hdlr = logging.handlers.WatchedFileHandler(
+        os.path.join(bapdir, 'pot.log'),
+        'a', encoding=None, delay=False)
     hdlr.setFormatter(formatter)
     potlogger.addHandler(hdlr)
     potlogger.setLevel(logging.INFO)
 
+    # access.log
     accesslogger = logging.getLogger('access')
-    hdlr = logging.handlers.WatchedFileHandler(os.path.join(bapdir, 'access.log'),
-                                               'a', encoding=None, delay=False)
+    hdlr = logging.handlers.WatchedFileHandler(
+        os.path.join(bapdir, 'access.log'),
+        'a', encoding=None, delay=False)
     hdlr.setFormatter(formatter)
     accesslogger.addHandler(hdlr)
     accesslogger.setLevel(logging.INFO)
 
+    # error.log
     errorlogger = logging.getLogger('error')
-    hdlr = logging.handlers.WatchedFileHandler(os.path.join(bapdir, 'error.log'),
-                                               'a', encoding=None, delay=False)
+    hdlr = logging.handlers.WatchedFileHandler(
+        os.path.join(bapdir, 'error.log'),
+        'a', encoding=None, delay=False)
     hdlr.setFormatter(formatter)
     errorlogger.addHandler(hdlr)
     errorlogger.setLevel(logging.INFO)
@@ -61,20 +67,27 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     # Change log format
     def log_request(self, code='-', size='-'):
-        self.log_message('"%s" %s "%s"',
-                         self.requestline.replace('"','\\"'), str(code), self.headers.getheader('User-Agent').replace('"','\\"'))
+        self.log_message(
+            '"%s" %s "%s"',
+            self.requestline.replace('"','\\"'),
+            str(code),
+            self.headers.getheader('User-Agent').replace('"','\\"'))
 
     # Log messages to access.log instead of stderr
     def log_message(self, format, *args):
-        self.accesslogger.info('%s:%s %s', self.address_string(),
-                                      self.srcport_string(),
-                                      format%args)
+        self.accesslogger.info(
+            '%s:%s %s',
+            self.address_string(),
+            self.srcport_string(),
+            format%args)
 
     # Log errors to error.log instead of calling log_message()
     def log_error(self, format, *args):
-        self.errorlogger.info('%s:%s %s', self.address_string(),
-                                     self.srcport_string(),
-                                     format%args)
+        self.errorlogger.info(
+            '%s:%s %s',
+            self.address_string(),
+            self.srcport_string(),
+            format%args)
 
     # Skip name resolving
     def address_string(self):
@@ -101,13 +114,17 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 try:
                     authdecoded = base64.b64decode(authparts[1])
                 except TypeError, e:
-                    self.errorlogger.info('%s:%s DecodeFailure %s', self.address_string(),
-                                          self.srcport_string(),
-                                          authparts[1])
+                    self.errorlogger.info(
+                        '%s:%s DecodeFailure %s',
+                        self.address_string(),
+                        self.srcport_string(),
+                        authparts[1])
                 else:
-                    self.potlogger.info('%s:%s Basic %s', self.address_string(),
-                                        self.srcport_string(),
-                                        authdecoded)
+                    self.potlogger.info(
+                        '%s:%s Basic %s',
+                        self.address_string(),
+                        self.srcport_string(),
+                        authdecoded)
 
     # GET = HEAD
     def do_GET(self):
@@ -116,7 +133,8 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 # Main
 def main():
-    httpd = BaseHTTPServer.HTTPServer((HTTP_ADDR, HTTP_PORT), BapRequestHandler)
+    httpd = BaseHTTPServer.HTTPServer(
+        (HTTP_ADDR, HTTP_PORT), BapRequestHandler)
     print "Starting service on %s:%s" % (HTTP_ADDR, HTTP_PORT)
     try:
         httpd.serve_forever()
