@@ -31,7 +31,7 @@ Auth_method: Parameter 1 from the authenticate request header. Is always Basic.
 Decoded_auth_string: Base64 decoded version of parameter 2 from the authenticate request header.  
 
 ### access.log - Server access log
-`Format: [Time] Client_address:Client_port "Request_string" Response_code "User-Agent_string"`  
+`Format: [Date Time] Client_address:Client_port "Request_string" Response_code "User-Agent_string"`  
 `Ex: [2015-01-09 19:59:43,508] 192.168.99.99:12345 "GET / HTTP/1.1" 401 "curl/7.38.0"`  
 Client_address and Client_port: Source of the request.  
 Request_string: Request received from the client, enclosed by `"`.  
@@ -40,7 +40,7 @@ User-agent_string: User-agent header received from the client, enclosed by `"`.
 *Note: Double quotes received from clients are escaped with `\`.*
 
 ### error.log - Server error log
-`Format: [Time] Client_address:Client_port Error_message`  
+`Format: [Date Time] Client_address:Client_port Error_message`  
 `Ex 1: [2015-01-09 19:59:45,406] 192.168.99.99:12346 code 501, message Unsupported method ('TRACE')`  
 `Ex 2: [2015-01-09 19:59:46,350] 192.168.99.99:12347 DecodeFailure abc123`  
 Client_address and Client_port: Source of the request.  
