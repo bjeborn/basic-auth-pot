@@ -71,7 +71,7 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             '"%s" %s "%s"',
             self.requestline.replace('"','\\"'),
             str(code),
-            self.headers.getheader('User-Agent').replace('"','\\"'))
+            self.headers.getheader('User-Agent','').replace('"','\\"'))
 
     # Log messages to access.log instead of stderr
     def log_message(self, format, *args):
