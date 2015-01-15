@@ -48,10 +48,13 @@ Error_message: Description of the error.
 Unsupported method occurs when the client request method is anything else than GET or HEAD.  
 DecodeFailure occurs when the client send basic authenticate and parameter 2 is not valid base64 encoded data.  
 
+### bap.log - Program output log
+stdout and stderr ends up here.
+
 ## Notes
 - A Request that trigger an error will receive the error code + message in the response header, for example "501 Unsupported method ('TRACE')".  
   It would be sufficent to send the code + a generic message, or just the code without any message.
 - The value user:pass in pot.log can contain multiple ':' chars. This could lead to parsing issues when trying to separate user and pass.
 - Logs can contain escaped double quotes. Double quotes received from clients are escaped with `\` before being logged.
-- Python errors vaporizes when bap is started as a backgroud service. Logfile would be good.
+- bap.log has no time of log events. Logging of exceptions make timestamping a bit complicated. Use traceback class to fix this?
 - Logfiles are not rotated.

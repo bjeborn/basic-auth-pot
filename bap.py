@@ -8,7 +8,8 @@
 #
 
 import os
-import logging.handlers
+import sys
+import datetime
 import BaseHTTPServer
 import base64
 
@@ -17,37 +18,39 @@ HTTP_ADDR = ''
 HTTP_PORT = 8080
 
 
+class StdLogger():
+    def __init__(self, logname):
+        self.logfile = os.path.join(os.path.dirname(__file__), logname) + '.log'
+
+    def write(self, message):
+        f = open(self.logfile, 'a')
+        f.write('%s' % (message))
+        f.close()
+
+class BapLogger():
+    def __init__(self, logname):
+        self.logfile = os.path.join(os.path.dirname(__file__), logname) + '.log'
+
+    def logtime(self):
+        now = datetime.datetime.now()
+        part1 = now.strftime('%Y-%m-%d %H:%M:%S')
+        part2 = now.strftime('%f')
+        # Floor milliseconds
+        return '%s,%s' % (part1, part2[:3])
+
+    def log(self, format, *args):
+        f = open(self.logfile, 'a')
+        f.write(
+            '[%s] %s\n' % (
+            self.logtime(),
+            format%args))
+        f.close()
+
 class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-    # Log setup
-    formatter = logging.Formatter('[%(asctime)s] %(message)s')
-    bapdir = os.path.dirname(__file__)
-
-    # pot.log
-    potlogger = logging.getLogger('pot')
-    hdlr = logging.handlers.WatchedFileHandler(
-        os.path.join(bapdir, 'pot.log'),
-        'a', encoding=None, delay=False)
-    hdlr.setFormatter(formatter)
-    potlogger.addHandler(hdlr)
-    potlogger.setLevel(logging.INFO)
-
-    # access.log
-    accesslogger = logging.getLogger('access')
-    hdlr = logging.handlers.WatchedFileHandler(
-        os.path.join(bapdir, 'access.log'),
-        'a', encoding=None, delay=False)
-    hdlr.setFormatter(formatter)
-    accesslogger.addHandler(hdlr)
-    accesslogger.setLevel(logging.INFO)
-
-    # error.log
-    errorlogger = logging.getLogger('error')
-    hdlr = logging.handlers.WatchedFileHandler(
-        os.path.join(bapdir, 'error.log'),
-        'a', encoding=None, delay=False)
-    hdlr.setFormatter(formatter)
-    errorlogger.addHandler(hdlr)
-    errorlogger.setLevel(logging.INFO)
+    # Create loggers
+    potlogger = BapLogger('bap')
+    accesslogger = BapLogger('access')
+    errorlogger = BapLogger('error')
 
     # Get client source port
     def srcport_string(self):
@@ -75,7 +78,7 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     # Log messages to access.log instead of stderr
     def log_message(self, format, *args):
-        self.accesslogger.info(
+        self.accesslogger.log(
             '%s:%s %s',
             self.address_string(),
             self.srcport_string(),
@@ -83,7 +86,7 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     # Log errors to error.log instead of calling log_message()
     def log_error(self, format, *args):
-        self.errorlogger.info(
+        self.errorlogger.log(
             '%s:%s %s',
             self.address_string(),
             self.srcport_string(),
@@ -114,13 +117,13 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                 try:
                     authdecoded = base64.b64decode(authparts[1])
                 except TypeError, e:
-                    self.errorlogger.info(
+                    self.errorlogger.log(
                         '%s:%s DecodeFailure %s',
                         self.address_string(),
                         self.srcport_string(),
                         authparts[1])
                 else:
-                    self.potlogger.info(
+                    self.potlogger.log(
                         '%s:%s Basic %s',
                         self.address_string(),
                         self.srcport_string(),
@@ -130,18 +133,29 @@ class BapRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_GET(self):
         self.do_HEAD()
 
-
 # Main
 def main():
+    # Redirect stdout and stderr
+    stdlog = StdLogger('bap')
+    outsave = sys.stdout
+    errsave = sys.stderr
+    sys.stdout = stdlog
+    sys.stderr = stdlog
+
+    # Start listener
     httpd = BaseHTTPServer.HTTPServer(
         (HTTP_ADDR, HTTP_PORT), BapRequestHandler)
-    print "Starting service on %s:%s" % (HTTP_ADDR, HTTP_PORT)
+    print "Starting bap on %s:%s" % (HTTP_ADDR, HTTP_PORT)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print "Service stopped"
+    print "bap stopped"
+
+    # Restore stdout and stderr
+    sys.stdout = outsave
+    sys.stderr = errsave
 
 if __name__ == '__main__':
     main()
